@@ -29,21 +29,32 @@ struct Session: Identifiable, Equatable {
     var state: SessionState = .idle
     var message: String = ""
     var itermSession: String?
+    var tabName: String?
+    var tabPath: String?
     var updated = Date()
 
     var project: String {
+        if let tabName, !tabName.isEmpty { return tabName }
         let name = URL(fileURLWithPath: cwd).lastPathComponent
         return name.isEmpty ? "Copilot" : name
+    }
+
+    var displayPath: String {
+        let path = (tabPath?.isEmpty == false ? tabPath : cwd) ?? ""
+        return (path as NSString).abbreviatingWithTildeInPath
     }
 }
 
 @MainActor
 final class SessionStore: ObservableObject {
     @Published private(set) var sessions: [Session] = []
-    @Published var hovering = false
+    @Published var hovering = false {
+        didSet { if hovering && !oldValue { sessions.forEach { refreshInfo(id: $0.id) } } }
+    }
 
     var needsAttention: Bool { sessions.contains { $0.state == .needsInput || $0.state == .done } }
     var expanded: Bool { hovering }
+    var isWorking: Bool { sessions.contains { $0.state == .working } }
     var attentionColor: Color? {
         if sessions.contains(where: { $0.state == .needsInput }) { return SessionState.needsInput.color }
         if sessions.contains(where: { $0.state == .done }) { return SessionState.done.color }
@@ -87,9 +98,21 @@ final class SessionStore: ObservableObject {
         if let idx = sessions.firstIndex(where: { $0.id == id }) { sessions[idx] = s } else { sessions.append(s) }
         sessions.sort { $0.updated > $1.updated }
 
+        if s.state != previous || s.tabName == nil { refreshInfo(id: id) }
+
         if s.state != previous {
             if s.state == .needsInput { NSSound(named: "Ping")?.play() }
             if s.state == .done { NSSound(named: "Glass")?.play() }
+        }
+    }
+
+    private func refreshInfo(id: String) {
+        guard let session = sessions.first(where: { $0.id == id }) else { return }
+        ITerm.info(sessionID: session.itermSession) { [weak self] info in
+            guard let self, let info, let idx = self.sessions.firstIndex(where: { $0.id == id }) else { return }
+            guard self.sessions[idx].tabName != info.name || self.sessions[idx].tabPath != info.path else { return }
+            self.sessions[idx].tabName = info.name
+            self.sessions[idx].tabPath = info.path
         }
     }
 

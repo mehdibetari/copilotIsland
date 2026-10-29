@@ -100,7 +100,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let notch = screen.safeAreaInsets.top
             let m = IslandMetrics(
                 collapsed: NSSize(width: notch > 0 ? Self.notchWidth(of: screen) + 2 * Self.earWidth : 200, height: notch > 0 ? notch : 26),
-                expanded: NSSize(width: 460, height: CGFloat(22 + rows * 56) + notch),
+                expanded: NSSize(width: 460, height: CGFloat(22 + rows * 70) + notch),
                 notch: notch)
             metrics[id] = m
             let panel = panels[id] ?? makePanel(metrics: m)

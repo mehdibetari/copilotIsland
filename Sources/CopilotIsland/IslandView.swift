@@ -53,10 +53,32 @@ struct IslandView: View {
             ForEach(store.sessions.prefix(6)) { Circle().fill($0.state.color).frame(width: 8, height: 8) }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .overlay(alignment: .leading) {
+            if store.isWorking { PulsingDot(color: SessionState.working.color).frame(width: 8, height: 8).padding(.leading, 9) }
+        }
         .overlay(alignment: .trailing) {
             if let color = store.attentionColor {
-                Circle().fill(color).frame(width: 8, height: 8).padding(.trailing, 6)
+                Circle().fill(color).frame(width: 8, height: 8).padding(.trailing, 9)
             }
+        }
+    }
+}
+
+private struct PulsingDot: View {
+    let color: Color
+    @State private var pulsing = false
+
+    var body: some View {
+        ZStack {
+            Circle().fill(color)
+                .scaleEffect(pulsing ? 3.2 : 1)
+                .opacity(pulsing ? 0 : 0.9)
+            Circle().fill(color)
+                .scaleEffect(pulsing ? 1.15 : 0.85)
+        }
+        .aspectRatio(1, contentMode: .fit)
+        .onAppear {
+            withAnimation(.easeOut(duration: 0.9).repeatForever(autoreverses: false)) { pulsing = true }
         }
     }
 }
@@ -67,9 +89,16 @@ private struct SessionRow: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            Circle().fill(session.state.color).frame(width: 10, height: 10)
+            if session.state == .working {
+                PulsingDot(color: session.state.color).frame(width: 10, height: 10)
+            } else {
+                Circle().fill(session.state.color).frame(width: 10, height: 10)
+            }
             VStack(alignment: .leading, spacing: 2) {
                 Text(session.project).font(.system(size: 13, weight: .semibold)).foregroundStyle(.white)
+                Text(session.displayPath)
+                    .font(.system(size: 10, design: .monospaced)).foregroundStyle(.white.opacity(0.45))
+                    .lineLimit(1).truncationMode(.head)
                 Text(session.message.isEmpty ? session.state.label : session.message)
                     .font(.system(size: 11)).foregroundStyle(.white.opacity(0.65)).lineLimit(2)
             }

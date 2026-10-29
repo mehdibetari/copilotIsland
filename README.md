@@ -2,6 +2,12 @@
 
 Application macOS (agent de barre de menus, sans icône dans le Dock) qui affiche l'état de vos sessions GitHub Copilot CLI dans une « île » et permet de revenir à l'onglet iTerm2 de la session.
 
+## Aperçu
+
+- Au repos, l'île épouse l'encoche du MacBook (comme une Dynamic Island) et affiche un point par session, coloré selon son état.
+- Une pastille orange (action requise) ou verte (tâche terminée) signale qu'une session attend une interaction.
+- Au survol, l'île s'agrandit avec une animation fluide et liste les sessions ; un clic sur une session ramène à son onglet iTerm2.
+
 ## Prérequis
 
 - macOS 14+
@@ -90,3 +96,7 @@ Si Launchpad/Finder affichent une ancienne icône, c'est le cache de macOS (`kil
 - **Port occupé** : l'app utilise `127.0.0.1:47615` ; vérifiez avec `lsof -iTCP:47615 -sTCP:LISTEN`.
 - **Le retour iTerm2 ne marche pas** : autorisez CopilotIsland dans Réglages Système → Confidentialité et sécurité → Automatisation.
 - **Test manuel du hook** : `echo '{}' | ~/.copilot/hooks/copilot-island-hook.sh sessionStart`
+
+## Licence
+
+[PolyForm Noncommercial 1.0.0](LICENSE) : utilisation, modification et partage libres pour tout usage non commercial. Toute utilisation commerciale est interdite.
